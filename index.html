@@ -267,13 +267,13 @@ function getNote(b,mi,n){
   return it ? it.note : '';
 }
 function toggle(b,mi,n){ const k=sk(b,mi,n); OV[k]=!isPaid(b,mi,n); gasSet(k,OV[k]?'1':'0'); render(); }
-function saveAmt(b,mi,n,v){ OV['a§'+sk(b,mi,n)] = v===''?null:(parseInt(v.replace(/[^0-9]/g,''))||null); renderSm(); }
-function saveNote(b,mi,n,v){ OV['nt§'+sk(b,mi,n)]=v; }
+function saveAmt(b,mi,n,v){ const k='a§'+sk(b,mi,n); const val=v===''?null:(parseInt(v.replace(/[^0-9]/g,''))||null); OV[k]=val; gasSet(k,val===null?'':String(val)); renderSm(); }
+function saveNote(b,mi,n,v){ const k='nt§'+sk(b,mi,n); OV[k]=v; gasSet(k,v); }
 
 function getDue(b,mi,n){ return OV['du§'+sk(b,mi,n)]||''; }
-function saveDue(b,mi,n,v){ OV['du§'+sk(b,mi,n)]=v; }
+function saveDue(b,mi,n,v){ const k='du§'+sk(b,mi,n); OV[k]=v; gasSet(k,v); }
 function getPayDate(b,mi,n){ return OV['pd§'+sk(b,mi,n)]||''; }
-function savePayDate(b,mi,n,v){ OV['pd§'+sk(b,mi,n)]=v; }
+function savePayDate(b,mi,n,v){ const k='pd§'+sk(b,mi,n); OV[k]=v; gasSet(k,v); }
 function dueStatus(v){
   if(!v) return '';
   const d=new Date(v),now=new Date(); now.setHours(0,0,0,0);
