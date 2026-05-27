@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>逗點教室 — 分校固定支出控管</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F7FA;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;min-height:100vh}
+.app{padding:24px;max-width:1100px;margin:0 auto}
+
+/* top bar */
+.top-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.top-bar h1{font-size:17px;font-weight:700;color:#0A1628;letter-spacing:.01em}
+.top-bar .sub{font-size:12px;color:#6B7280;margin-top:3px}
+.controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* form elements */
+select,button{font-family:inherit;cursor:pointer;outline:none}
+.msel{font-size:13px;padding:6px 10px;border:1px solid #D1D5DB;border-radius:6px;background:#fff;color:#111827}
+.msel:focus{border-color:#1B4FBF}
+.vtog{display:flex;border:1px solid #D1D5DB;border-radius:6px;overflow:hidden;background:#fff}
+.vtog button{padding:5px 13px;font-size:12px;border:none;background:transparent;color:#6B7280;transition:all .15s}
+.vtog button.on{background:#0A1628;color:#fff}
+.ebtn{font-size:12px;padding:6px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#fff;color:#374151}
+.ebtn:hover{background:#F3F4F6;border-color:#9CA3AF}
+
+/* summary cards */
+.sm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:600px){.sm-grid{grid-template-columns:repeat(2,1fr)}}
+.mc{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.mc .lbl{font-size:10px;color:#9CA3AF;margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.mc .val{font-size:22px;font-weight:700;color:#111827}
+.mc .sub{font-size:11px;color:#9CA3AF;margin-top:3px}
+.mc.ok .val{color:#059669}.mc.warn .val{color:#D97706}.mc.danger .val{color:#DC2626}
+
+/* branch tabs */
+.tab-row{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
+.tbtn{padding:6px 14px;font-size:13px;border:1px solid #E5E7EB;border-radius:6px;background:#fff;color:#6B7280;display:flex;align-items:center;gap:5px;transition:all .15s}
+.tbtn.on{background:#0A1628;border-color:#0A1628;color:#fff;font-weight:500}
+.tbtn:hover:not(.on){background:#F9FAFB;color:#111827}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dg{background:#059669}.da{background:#D97706}.dr{background:#DC2626}
+
+/* table */
+.tw{overflow-x:auto;border:1px solid #E5E7EB;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10px;font-weight:700;color:#9CA3AF;padding:10px 12px;border-bottom:1px solid #E5E7EB;text-align:center;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;background:#F9FAFB}
+thead th.tl{text-align:left}
+tbody tr:hover{background:#F9FAFB}
+tbody td{padding:9px 12px;border-bottom:1px solid #F3F4F6;text-align:center;vertical-align:middle}
+tbody td.tl{text-align:left;color:#111827}
+tbody tr:last-child td{border-bottom:none}
+.cat-row td{background:#EEF2FF;font-size:10px;font-weight:700;color:#1B4FBF;text-align:left;padding:6px 14px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #E5E7EB}
+
+/* check icon */
+.ck{font-size:18px;cursor:pointer;user-select:none;display:inline-block;width:28px;height:28px;line-height:28px;border-radius:50%;transition:background .1s}
+.ck:hover{background:#F3F4F6}
+.ck.paid{color:#059669}.ck.unpaid{color:#D1D5DB}
+
+/* amount input */
+.amt-inp{width:95px;background:transparent;border:none;border-bottom:1px solid #E5E7EB;font-size:13px;color:#1B4FBF;padding:3px 4px;text-align:right;outline:none;font-family:inherit}
+.amt-inp:focus{border-bottom-color:#1B4FBF;color:#0A1628}
+.amt-inp::placeholder{color:#D1D5DB;font-size:12px}
+
+/* note */
+.note-wrap{position:relative}
+.note-disp{font-size:11px;color:#9CA3AF;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;padding:3px 2px;border-bottom:1px solid transparent}
+.note-disp:hover{color:#374151;border-bottom-color:#D1D5DB}
+.note-inp-field{width:100%;background:transparent;border:none;border-bottom:1px solid #1B4FBF;font-size:11px;color:#111827;padding:3px 2px;outline:none;font-family:inherit;display:none}
+
+/* overview */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+.bc{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.bc:hover{border-color:#0A1628;box-shadow:0 2px 8px rgba(10,22,40,.08)}
+.bc-name{font-size:13px;font-weight:600;color:#0A1628;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.bc-name svg{opacity:.4;flex-shrink:0}
+.bc-pct{font-size:24px;font-weight:700;margin-bottom:3px;display:flex;align-items:baseline;gap:8px}
+.bc-sub{font-size:11px;color:#9CA3AF;margin-bottom:8px}
+.pb-wrap{background:#F3F4F6;border-radius:3px;height:4px;overflow:hidden}
+.pb{height:4px;border-radius:3px;transition:width .5s}
+.bc-amt{font-size:11px;color:#1B4FBF;margin-top:7px;font-weight:500}
+.badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.bok{background:#D1FAE5;color:#065F46}
+.bwarn{background:#FEF3C7;color:#92400E}
+.bdanger{background:#FEE2E2;color:#991B1B}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <div>
+      <h1>逗點教室 — 分校每月固定支出控管</h1>
+      <div class="sub">五校區 · 批次繳費追蹤系統</div>
+    </div>
+    <div class="controls">
+      <select class="msel" id="msel"></select>
+      <div class="vtog">
+        <button class="on" id="btnD" onclick="setView('d')">明細</button>
+        <button id="btnO" onclick="setView('o')">總覽</button>
+      </div>
+      <button class="ebtn" onclick="doExport()">↓ 匯出</button>
+    </div>
+  </div>
+
+  <div class="sm-grid" id="smCards"></div>
+  <div class="tab-row" id="tabs"></div>
+  <div id="dv"><div class="tw"><table><thead><tr id="th"></tr></thead><tbody id="tb"></tbody></table></div></div>
+  <div id="ov" style="display:none"><div class="ov-grid" id="og"></div></div>
+</div>
+
+<script>
+const MO_TXT=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const CUR_M = 4; // 0-indexed = 5月
+
+const BD = {
+  '參天校': {
+    mo:[0,1,2,3,4],
+    items:[
+      {c:'環境',      n:'芳香劑',              p:[1,1,1,1,1], note:'已繳2025/8-2026/7',                         amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'1樓水費',             p:[1,1,1,0,0], note:'區間12/03-01/27；單數月收',               amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'2樓水費',             p:[1,1,1,0,0], note:'區間12/03-01/27；單數月收',               amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'3樓水費',             p:[1,1,1,0,0], note:'區間12/03-01/27',                         amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'樹屋水費',            p:[0,0,0,0,0], note:'區間10/03-12/02（已繳）',                 amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'1樓電費',             p:[1,1,1,0,0], note:'區間12/26-02/24；02/25-04/27',            amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'2樓電費',             p:[1,1,1,0,0], note:'區間12/26-02/24；02/25-04/26',            amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'3樓電費',             p:[1,1,1,0,0], note:'區間12/26-02/24；02/25-04/26',            amt:[null,null,null,null,null]},
+      {c:'水電費',    n:'樹屋電費',            p:[1,1,1,0,0], note:'區間12/26-02/24；02/25-04/26',            amt:[null,null,null,null,null]},
+      {c:'電信費',    n:'中華電信網路費',      p:[1,1,1,0,0], note:'每月20號繳納後上ERP',                     amt:[null,null,null,null,null]},
+      {c:'電信費',    n:'中華電信電話費',      p:[1,1,1,0,0], note:'每月20號繳納後上ERP',                     amt:[null,null,null,null,null]},
+      {c:'電信費',    n:'毅通網路電話費',      p:[1,1,1,0,0], note:'3/31上ERP（繳費期限4/7）',               amt:[null,null,null,null,null]},
+      {c:'影印費',    n:'影印機費用',          p:[0,0,0,0,0], note:'10-12月、1-3月費用；4/14上ERP',           amt:[null,null,null,null,null]},
+      {c:'房租',      n:'每月房租（265號）',   p:[1,1,1,1,0], note:'',                                        amt:[null,null,null,null,null]},
+      {c:'房租',      n:'每月樹屋房租（235號）',p:[1,1,1,1,0],note:'',                                        amt:[null,null,null,null,null]},
+      {c:'勞工相關',  n:'勞保費',              p:[0,0,0,0,0], note:'最後繳費1/30，繳到12月；每月15號寬限期',  amt:[null,null,null,null,null]},
+      {c:'勞工相關',  n:'健保費',              p:[1,0,0,0,0], note:'最後繳費3/9，繳到1月；每月20號出繳款單', amt:[null,null,null,null,null]},
+      {c:'勞工相關',  n:'勞退費',              p:[0,0,0,0,0], note:'最後繳費1/30，繳到12月',                  amt:[null,null,null,null,null]},
+    ]
+  },
+  '方舟校': {
+    mo:[0,1,2,3],
+    items:[
+      {c:'環境',      n:'芳香劑',              p:[1,1,1,1], note:'已付全年$10,400；2025/7/30-2026/7/30',  amt:[null,null,null,null]},
+      {c:'水電費',    n:'1樓水費(995號)',       p:[1,1,0,0], note:'區間114/12/18-114/2/11',               amt:[null,null,null,null]},
+      {c:'水電費',    n:'2樓水費(995號)',       p:[1,1,0,0], note:'區間114/12/18-114/2/11',               amt:[null,null,null,null]},
+      {c:'水電費',    n:'3-5樓水費(995號)',     p:[1,1,0,0], note:'區間114/12/18-114/2/11',               amt:[null,null,null,null]},
+      {c:'水電費',    n:'1樓水費(993號)',       p:[1,1,1,0], note:'每個月300元',                          amt:[300,300,300,null]},
+      {c:'水電費',    n:'1樓電費(995號)',       p:[1,1,1,0], note:'區間3/13-5/12',                        amt:[null,null,null,null]},
+      {c:'水電費',    n:'2樓電費(995號)',       p:[1,1,1,0], note:'區間3/13-5/12',                        amt:[null,null,null,null]},
+      {c:'水電費',    n:'3-5樓電費(995號)',     p:[1,1,1,0], note:'區間3/13-5/12',                        amt:[null,null,null,null]},
+      {c:'水電費',    n:'1樓電費(993號)',       p:[1,1,1,0], note:'區間3/13-5/12',                        amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信網路費',       p:[0,0,0,0], note:'一直都沒有網路費',                     amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信電話費',       p:[1,0,0,0], note:'帳本在總部，自動扣款，需確認',         amt:[null,null,null,null]},
+      {c:'電信費',    n:'毅通網路電話費',       p:[1,1,0,0], note:'',                                     amt:[null,null,null,null]},
+      {c:'影印費',    n:'影印機費用',           p:[0,0,0,0], note:'',                                     amt:[null,null,null,null]},
+      {c:'房租',      n:'每月995號房租',        p:[1,1,1,1], note:'',                                     amt:[null,null,null,null]},
+      {c:'房租',      n:'每月993號房租',        p:[1,1,1,1], note:'',                                     amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞保費',              p:[1,1,0,0], note:'',                                     amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'健保費',              p:[1,1,0,0], note:'',                                     amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞退費',              p:[1,1,0,0], note:'',                                     amt:[null,null,null,null]},
+    ]
+  },
+  '旭日校': {
+    mo:[0,1,2,3],
+    items:[
+      {c:'環境',      n:'芳香劑',              p:[1,1,1,0], note:'',                               amt:[null,null,null,null]},
+      {c:'水電費',    n:'4樓水費',             p:[1,0,0,0], note:'114/12/03~115/01/27',            amt:[null,null,null,null]},
+      {c:'水電費',    n:'5樓水費',             p:[1,0,0,0], note:'114/12/03~115/01/27',            amt:[null,null,null,null]},
+      {c:'水電費',    n:'4樓電費',             p:[1,0,0,0], note:'114/12/16~115/02/09',            amt:[null,null,null,null]},
+      {c:'水電費',    n:'5樓電費',             p:[1,0,0,0], note:'114/12/16~115/02/09',            amt:[null,null,null,null]},
+      {c:'電信費',    n:'中嘉網路費',          p:[1,1,1,0], note:'一次繳三個月',                   amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信電話費',      p:[1,1,1,0], note:'3月已上ERP且撥款下來',           amt:[null,null,null,null]},
+      {c:'電信費',    n:'毅通網路電話費',      p:[1,1,1,0], note:'3月已上ERP',                     amt:[null,null,null,null]},
+      {c:'影印費',    n:'影印機費用',          p:[1,1,0,0], note:'已繳12月-2月',                   amt:[null,null,null,null]},
+      {c:'房租',      n:'每月旭日校房租',      p:[1,1,1,0], note:'',                               amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞保費',              p:[1,1,0,0], note:'3月單子尚未拿到（4/中）',        amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'健保費',              p:[1,1,0,0], note:'3月單子尚未拿到（4/中）',        amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞退費',              p:[1,1,0,0], note:'3月單子尚未拿到（4/中）',        amt:[null,null,null,null]},
+    ]
+  },
+  '心夢想校': {
+    mo:[0,1,2,3],
+    items:[
+      {c:'環境',      n:'芳香劑',              p:[1,1,1,1], note:'',                                           amt:[null,null,null,null]},
+      {c:'水電費',    n:'1樓水費',             p:[1,1,0,0], note:'114/11/11-115/01/05',                        amt:[null,null,null,null]},
+      {c:'水電費',    n:'2樓水費',             p:[1,1,0,0], note:'114/11/11-115/01/05',                        amt:[null,null,null,null]},
+      {c:'水電費',    n:'3樓水費',             p:[1,1,0,0], note:'114/11/11-115/01/05',                        amt:[null,null,null,null]},
+      {c:'水電費',    n:'1樓電費',             p:[0,0,0,0], note:'三月已申請ERP',                              amt:[null,null,null,null]},
+      {c:'水電費',    n:'2樓電費',             p:[0,0,0,0], note:'三月已申請ERP',                              amt:[null,null,null,null]},
+      {c:'水電費',    n:'3樓電費',             p:[0,0,0,0], note:'三月已申請ERP',                              amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信網路費',      p:[1,1,1,0], note:'3月：115/02/11-115/03/10',                   amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信電話費',      p:[1,1,1,0], note:'3月：115/02/11-115/03/10',                   amt:[null,null,null,null]},
+      {c:'電信費',    n:'毅通網路電話費',      p:[0,0,0,0], note:'115/03/06-115/03/15，已申請ERP',             amt:[null,null,null,null]},
+      {c:'影印費',    n:'影印機費用',          p:[1,1,0,0], note:'03月單據還沒給我們',                         amt:[null,null,null,null]},
+      {c:'房租',      n:'每月房租-4萬',        p:[1,1,1,1], note:'',                                           amt:[40000,40000,40000,40000]},
+      {c:'房租',      n:'每月房租-收入10%',    p:[1,1,0,0], note:'02月10%在03月給',                            amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞保費',              p:[1,1,0,0], note:'保在逗點文創，尚無認列',                     amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'健保費',              p:[1,1,0,0], note:'保在逗點文創，尚無認列',                     amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞退費',              p:[1,1,0,0], note:'保在逗點文創，尚無認列',                     amt:[null,null,null,null]},
+    ]
+  },
+  '升大校': {
+    mo:[0,1,2,3],
+    items:[
+      {c:'環境',      n:'芳香劑',              p:[1,1,1,1], note:'4月請款已下來，等廠商來會付現金',            amt:[null,null,null,null]},
+      {c:'水電費',    n:'2樓水費',             p:[1,1,1,1], note:'水費5月帳單已繳（區間：115.1/31~115.4/08）',amt:[null,null,null,null]},
+      {c:'水電費',    n:'3樓水費',             p:[1,1,1,1], note:'水費5月帳單已繳（區間：115.1/31~115.4/08）',amt:[null,null,null,null]},
+      {c:'水電費',    n:'2樓電費',             p:[1,1,1,0], note:'電費3月帳單已繳（區間115.1/19~115.3/19）',  amt:[null,null,null,null]},
+      {c:'水電費',    n:'3樓電費',             p:[1,1,1,0], note:'電費3月帳單已繳（區間115.1/19~115.3/19）',  amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信網路費',      p:[1,1,1,0], note:'4月份帳單已收到，5/25去補繳',               amt:[null,null,null,null]},
+      {c:'電信費',    n:'中華電信電話費',      p:[1,1,1,1], note:'4月份帳單，5/4已繳納',                       amt:[null,null,null,null]},
+      {c:'電信費',    n:'毅通網路電話費',      p:[1,1,1,1], note:'4月份帳單，5/4已繳納',                       amt:[null,null,null,null]},
+      {c:'影印費',    n:'影印機費用',          p:[1,1,1,0], note:'1~3月一期，3/24上ERP，4/2出帳給廠商',        amt:[null,null,null,null]},
+      {c:'房租',      n:'每月升大校房租',      p:[1,1,1,1], note:'',                                           amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞保費',              p:[1,1,1,0], note:'升大無紀錄，1~2月已向人資確認',              amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'健保費',              p:[1,1,1,0], note:'升大無紀錄，1~2月已向人資確認',              amt:[null,null,null,null]},
+      {c:'勞工相關',  n:'勞退費',              p:[1,1,1,0], note:'升大無紀錄，1~2月已向人資確認',              amt:[null,null,null,null]},
+    ]
+  }
+};
+
+const BRANCHES = Object.keys(BD);
+let curB = BRANCHES[0], curM = CUR_M, curV = 'd';
+let OV = {};
+
+function sk(b,mi,n){ return b+'§'+mi+'§'+n }
+function isPaid(b,mi,n){
+  const k=sk(b,mi,n);
+  if(OV[k]!==undefined) return OV[k];
+  const d=BD[b]; const li=d.mo.indexOf(mi);
+  if(li<0) return false;
+  const it=d.items.find(x=>x.n===n);
+  return it ? !!it.p[li] : false;
+}
+function getAmt(b,mi,n){
+  const k='a§'+sk(b,mi,n);
+  if(OV[k]!==undefined) return OV[k];
+  const d=BD[b]; const li=d.mo.indexOf(mi);
+  if(li<0) return null;
+  const it=d.items.find(x=>x.n===n);
+  return it ? it.amt[li] : null;
+}
+function getNote(b,mi,n){
+  const k='nt§'+sk(b,mi,n);
+  if(OV[k]!==undefined) return OV[k];
+  const it=BD[b].items.find(x=>x.n===n);
+  return it ? it.note : '';
+}
+function toggle(b,mi,n){ OV[sk(b,mi,n)]=!isPaid(b,mi,n); render(); }
+function saveAmt(b,mi,n,v){ OV['a§'+sk(b,mi,n)] = v===''?null:(parseInt(v.replace(/[^0-9]/g,''))||null); renderSm(); }
+function saveNote(b,mi,n,v){ OV['nt§'+sk(b,mi,n)]=v; }
+
+function fmtAmt(v){ return v==null?'':Number(v).toLocaleString(); }
+function stats(b,mi){
+  const its=BD[b].items; let p=0,t=its.length,s=0;
+  its.forEach(it=>{ if(isPaid(b,mi,it.n)){p++; const a=getAmt(b,mi,it.n); if(a) s+=a; } });
+  return {p,t,pct:Math.round(p/t*100),sum:s};
+}
+function allStats(mi){
+  let u=0,t=0,s=0;
+  BRANCHES.forEach(b=>{ const st=stats(b,mi); u+=(st.t-st.p); t+=st.t; s+=st.sum; });
+  return {u,t,s};
+}
+function pCol(p){ return p===100?'#0DBF7A':p>=70?'#F5A623':'#E8415A'; }
+function dotCls(p){ return p===100?'dg':p>=70?'da':'dr'; }
+function bCls(p){ return p===100?'bok':p>=70?'bwarn':'bdanger'; }
+function bTxt(p){ return p===100?'完成':p>=70?'部分待繳':'需注意'; }
+
+function setView(v){
+  curV=v;
+  document.getElementById('dv').style.display=v==='d'?'':'none';
+  document.getElementById('ov').style.display=v==='o'?'':'none';
+  document.getElementById('btnD').classList.toggle('on',v==='d');
+  document.getElementById('btnO').classList.toggle('on',v==='o');
+  if(v==='o') renderOv();
+}
+
+function renderMsel(){
+  const s=document.getElementById('msel'); s.innerHTML='';
+  MO_TXT.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent='115年 '+m; if(i===curM)o.selected=true; s.appendChild(o); });
+  s.onchange=()=>{ curM=parseInt(s.value); render(); };
+}
+
+function renderTabs(){
+  const el=document.getElementById('tabs'); el.innerHTML='';
+  BRANCHES.forEach(b=>{
+    const s=stats(b,curM);
+    const btn=document.createElement('button'); btn.className='tbtn'+(b===curB?' on':'');
+    btn.innerHTML=b+' <span class="dot '+dotCls(s.pct)+'"></span>';
+    btn.onclick=()=>{ curB=b; renderTabs(); renderTable(); renderSm(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderSm(){
+  const a=allStats(curM), br=stats(curB,curM);
+  document.getElementById('smCards').innerHTML=
+    '<div class="mc '+(a.u===0?'ok':a.u<=8?'warn':'danger')+'"><div class="lbl">全校區未繳</div><div class="val">'+a.u+' 項</div></div>'+
+    '<div class="mc"><div class="lbl">已繳金額合計</div><div class="val">'+(a.s>0?'$'+a.s.toLocaleString():'-')+'</div><div class="sub">本月已輸入金額</div></div>'+
+    '<div class="mc '+(br.pct===100?'ok':br.pct>=70?'warn':'danger')+'"><div class="lbl">'+curB+' 完成率</div><div class="val">'+br.pct+'%</div></div>'+
+    '<div class="mc"><div class="lbl">'+curB+' 已繳</div><div class="val">'+br.p+'/'+br.t+'</div><div class="sub">'+(br.sum>0?'已繳 $'+br.sum.toLocaleString():'')+'</div></div>';
+}
+
+function renderTable(){
+  const mi=curM, bd=BD[curB];
+  document.getElementById('th').innerHTML=
+    '<th class="tl" style="min-width:60px;padding-left:12px">類別</th>'+
+    '<th class="tl" style="min-width:140px">項目</th>'+
+    '<th style="min-width:60px">狀態</th>'+
+    '<th style="min-width:100px">金額（元）</th>'+
+    '<th class="tl" style="min-width:180px">備註</th>';
+
+  const tb=document.getElementById('tb'); tb.innerHTML='';
+  let lastC='';
+  bd.items.forEach((it,idx)=>{
+    if(it.c!==lastC){
+      const r=document.createElement('tr'); r.className='cat-row';
+      r.innerHTML='<td colspan="5">'+it.c+'</td>';
+      tb.appendChild(r); lastC=it.c;
+    }
+    const paid=isPaid(curB,mi,it.n);
+    const amt=getAmt(curB,mi,it.n);
+    const note=getNote(curB,mi,it.n);
+    const sid='s'+idx+'_'+mi;
+
+    const tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td class="tl" style="padding-left:16px;color:#2A4060;font-size:12px"></td>'+
+      '<td class="tl">'+it.n+'</td>'+
+      '<td><span class="ck '+(paid?'paid':'unpaid')+'" id="ck_'+sid+'">'+(paid?'✓':'○')+'</span></td>'+
+      '<td><input class="amt-inp" type="text" value="'+fmtAmt(amt)+'" placeholder="輸入金額" id="amt_'+sid+'"></td>'+
+      '<td><div class="note-wrap"><div class="note-disp" id="nd_'+sid+'">'+(note||'<span style="color:#2A4060">點擊新增…</span>')+'</div><input class="note-inp-field" id="ni_'+sid+'" value="'+note+'" placeholder="新增備註…"></div></td>';
+
+    // wire events after appending
+    const bName=curB, iName=it.n;
+    tr.querySelector('#ck_'+sid).onclick=()=>{ toggle(bName,mi,iName); };
+    const amtInp=tr.querySelector('#amt_'+sid);
+    amtInp.onblur=()=>{ const v=parseInt(amtInp.value.replace(/[^0-9]/g,''))||0; amtInp.value=v>0?v.toLocaleString():''; saveAmt(bName,mi,iName,amtInp.value); };
+    const nd=tr.querySelector('#nd_'+sid), ni=tr.querySelector('#ni_'+sid);
+    nd.onclick=()=>{ nd.style.display='none'; ni.style.display='block'; ni.focus(); };
+    ni.onblur=()=>{ saveNote(bName,mi,iName,ni.value); nd.innerHTML=ni.value||'<span style="color:#2A4060">點擊新增…</span>'; ni.style.display='none'; nd.style.display=''; };
+
+    tb.appendChild(tr);
+  });
+}
+
+function renderOv(){
+  const mi=curM, grid=document.getElementById('og'); grid.innerHTML='';
+  BRANCHES.forEach(b=>{
+    const s=stats(b,mi);
+    const div=document.createElement('div'); div.className='bc';
+    div.innerHTML=
+      '<div class="bc-name">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+
+      b+'</div>'+
+      '<div class="bc-pct" style="color:'+pCol(s.pct)+'">'+s.pct+'%<span class="badge '+bCls(s.pct)+'" style="font-size:10px;margin-left:4px">'+bTxt(s.pct)+'</span></div>'+
+      '<div class="bc-sub">'+s.p+' / '+s.t+' 項已繳</div>'+
+      '<div class="pb-wrap"><div class="pb" style="width:'+s.pct+'%;background:'+pCol(s.pct)+'"></div></div>'+
+      (s.sum>0?'<div class="bc-amt">已繳 $'+s.sum.toLocaleString()+'</div>':'');
+    div.onclick=()=>{ curB=b; setView('d'); renderTabs(); renderTable(); renderSm(); };
+    grid.appendChild(div);
+  });
+}
+
+function doExport(){
+  const mi=curM; let txt='逗點教室 分校固定支出控管報告\n115年 '+MO_TXT[mi]+'\n'+'='.repeat(44)+'\n\n';
+  BRANCHES.forEach(b=>{
+    const s=stats(b,mi);
+    txt+='【'+b+'】'+s.p+'/'+s.t+' 已繳 ('+s.pct+'%)'+(s.sum>0?' — 已繳合計 $'+s.sum.toLocaleString():'')+'\n';
+    BD[b].items.forEach(it=>{
+      const p=isPaid(b,mi,it.n), a=getAmt(b,mi,it.n), nt=getNote(b,mi,it.n);
+      txt+='  '+(p?'✓':'✗')+' ['+it.c+'] '+it.n+(a?' $'+Number(a).toLocaleString():'')+(nt?' — '+nt:'')+'\n';
+    }); txt+='\n';
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
+  a.download='逗點分校繳費控管_115年'+MO_TXT[mi]+'.txt'; a.click();
+}
+
+function render(){ renderSm(); renderTabs(); renderTable(); if(curV==='o') renderOv(); }
+renderMsel(); render();
+</script>
+</body>
+</html>
