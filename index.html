@@ -116,7 +116,8 @@ tr.paid-row .due-inp,tr.paid-row .pay-inp{background:rgba(255,255,255,.1);border
 
 <script>
 const MO_TXT=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-const CUR_M = 4; // 0-indexed = 5月
+const CUR_M = 4;
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwuCGAnRPk3UnJVbgVSdq0idWJ36c-XFxKmw4w1hJq-ZYF1-wSIjnhYbH9DW8BiARVKAg/exec';
 
 const BD = {
   '參天校': {
@@ -227,6 +228,20 @@ const BD = {
 const BRANCHES = Object.keys(BD);
 let curB = BRANCHES[0], curM = CUR_M, curV = 'd';
 let OV = {};
+let GAS_READY = false;
+async function gasLoad(){
+  try{
+    const r=await fetch(GAS_URL);
+    const d=await r.json();
+    if(Array.isArray(d)) d.forEach(row=>{ if(row[0]) OV[row[0]]=row[1]; });
+    GAS_READY=true;
+  }catch(e){console.log('load err',e);}
+}
+async function gasSet(key,value){
+  try{
+    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({key,value}),headers:{'Content-Type':'text/plain'}});
+  }catch(e){console.log('save err',e);}
+}
 
 function sk(b,mi,n){ return b+'§'+mi+'§'+n }
 function isPaid(b,mi,n){
@@ -251,7 +266,7 @@ function getNote(b,mi,n){
   const it=BD[b].items.find(x=>x.n===n);
   return it ? it.note : '';
 }
-function toggle(b,mi,n){ OV[sk(b,mi,n)]=!isPaid(b,mi,n); render(); }
+function toggle(b,mi,n){ const k=sk(b,mi,n); OV[k]=!isPaid(b,mi,n); gasSet(k,OV[k]?'1':'0'); render(); }
 function saveAmt(b,mi,n,v){ OV['a§'+sk(b,mi,n)] = v===''?null:(parseInt(v.replace(/[^0-9]/g,''))||null); renderSm(); }
 function saveNote(b,mi,n,v){ OV['nt§'+sk(b,mi,n)]=v; }
 
@@ -401,7 +416,7 @@ function doExport(){
 }
 
 function render(){ renderSm(); renderTabs(); renderTable(); if(curV==='o') renderOv(); }
-renderMsel(); render();
+renderMsel(); document.body.insertAdjacentHTML('beforeend','<div id="ld" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:999;font-size:15px;color:#0A1628">載入資料中…</div>'); gasLoad().then(()=>{ document.getElementById('ld').remove(); render(); });
 </script>
 </body>
 </html>
