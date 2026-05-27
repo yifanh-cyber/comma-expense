@@ -56,6 +56,11 @@ tbody tr:last-child td{border-bottom:none}
 /* check icon */
 .ck{font-size:18px;cursor:pointer;user-select:none;display:inline-block;width:28px;height:28px;line-height:28px;border-radius:50%;transition:background .1s}
 .ck:hover{background:#F3F4F6}
+.due-inp{width:100%;border:1px solid #E5E7EB;border-radius:5px;padding:4px 6px;font-size:12px;font-family:inherit;background:#fff;color:#374151;outline:none;cursor:pointer}
+.due-inp:focus{border-color:#1B4FBF}
+.pay-inp{width:100%;border:1px solid #E5E7EB;border-radius:5px;padding:4px 6px;font-size:12px;font-family:inherit;background:#fff;color:#374151;outline:none;cursor:pointer}
+.pay-inp:focus{border-color:#1B4FBF}
+tr.paid-row .due-inp,tr.paid-row .pay-inp{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.7)}
 .ck.paid{color:#059669}.ck.unpaid{color:#D1D5DB}
 
 /* amount input */
@@ -250,6 +255,18 @@ function toggle(b,mi,n){ OV[sk(b,mi,n)]=!isPaid(b,mi,n); render(); }
 function saveAmt(b,mi,n,v){ OV['a§'+sk(b,mi,n)] = v===''?null:(parseInt(v.replace(/[^0-9]/g,''))||null); renderSm(); }
 function saveNote(b,mi,n,v){ OV['nt§'+sk(b,mi,n)]=v; }
 
+function getDue(b,mi,n){ return OV['du§'+sk(b,mi,n)]||''; }
+function saveDue(b,mi,n,v){ OV['du§'+sk(b,mi,n)]=v; }
+function getPayDate(b,mi,n){ return OV['pd§'+sk(b,mi,n)]||''; }
+function savePayDate(b,mi,n,v){ OV['pd§'+sk(b,mi,n)]=v; }
+function dueStatus(v){
+  if(!v) return '';
+  const d=new Date(v),now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.round((d-now)/(1000*60*60*24));
+  if(diff<0) return 'overdue';
+  if(diff<=3) return 'soon';
+  return 'ok';
+}
 function fmtAmt(v){ return v==null?'':Number(v).toLocaleString(); }
 function stats(b,mi){
   const its=BD[b].items; let p=0,t=its.length,s=0;
@@ -307,7 +324,7 @@ function renderTable(){
     '<th class="tl" style="min-width:60px;padding-left:12px">類別</th>'+
     '<th class="tl" style="min-width:140px">項目</th>'+
     '<th style="min-width:60px">狀態</th>'+
-    '<th style="min-width:100px">金額（元）</th>'+
+    '<th style="min-width:110px">截止日</th>'+'<th style="min-width:110px">繳費日期</th>'+'<th style="min-width:100px">金額（元）</th>'+
     '<th class="tl" style="min-width:180px">備註</th>';
 
   const tb=document.getElementById('tb'); tb.innerHTML='';
@@ -328,6 +345,8 @@ function renderTable(){
       '<td class="tl" style="padding-left:16px;color:#2A4060;font-size:12px"></td>'+
       '<td class="tl">'+it.n+'</td>'+
       '<td><span class="ck '+(paid?'paid':'unpaid')+'" id="ck_'+sid+'">'+(paid?'✓':'○')+'</span></td>'+
+      '<td id="due_td_'+sid+'">'+'<input type="date" class="due-inp" id="due_'+sid+'" value="">'+'</td>'+
+      '<td>'+'<input type="date" class="pay-inp" id="pay_'+sid+'" value="">'+'</td>'+
       '<td><input class="amt-inp" type="text" value="'+fmtAmt(amt)+'" placeholder="輸入金額" id="amt_'+sid+'"></td>'+
       '<td><div class="note-wrap"><div class="note-disp" id="nd_'+sid+'">'+(note||'<span style="color:#2A4060">點擊新增…</span>')+'</div><input class="note-inp-field" id="ni_'+sid+'" value="'+note+'" placeholder="新增備註…"></div></td>';
 
@@ -336,6 +355,10 @@ function renderTable(){
     tr.querySelector('#ck_'+sid).onclick=()=>{ toggle(bName,mi,iName); };
     const amtInp=tr.querySelector('#amt_'+sid);
     amtInp.onblur=()=>{ const v=parseInt(amtInp.value.replace(/[^0-9]/g,''))||0; amtInp.value=v>0?v.toLocaleString():''; saveAmt(bName,mi,iName,amtInp.value); };
+    const dueInp=tr.querySelector('#due_'+sid);
+    if(dueInp){ dueInp.value=getDue(bName,mi,iName); dueInp.onchange=()=>{ saveDue(bName,mi,iName,dueInp.value); const s=dueStatus(dueInp.value); dueInp.style.cssText=!dueInp.value?'':(s==='overdue'?'background:#FEE2E2;color:#991B1B':(s==='soon'?'background:#FEF3C7;color:#92400E':'background:#D1FAE5;color:#065F46')); }; }
+    const payInp=tr.querySelector('#pay_'+sid);
+    if(payInp){ payInp.value=getPayDate(bName,mi,iName); payInp.onchange=()=>{ savePayDate(bName,mi,iName,payInp.value); }; }
     const nd=tr.querySelector('#nd_'+sid), ni=tr.querySelector('#ni_'+sid);
     nd.onclick=()=>{ nd.style.display='none'; ni.style.display='block'; ni.focus(); };
     ni.onblur=()=>{ saveNote(bName,mi,iName,ni.value); nd.innerHTML=ni.value||'<span style="color:#2A4060">點擊新增…</span>'; ni.style.display='none'; nd.style.display=''; };
