@@ -231,13 +231,16 @@ let OV = {};
 let GAS_READY = false;
 async function gasLoad(){
   try{
-    const r=await fetch(GAS_URL);
-    const d=await r.json();
+    const r=await fetch(GAS_URL, {redirect:'follow'});
+    const text=await r.text();
+    let d;
+    try{ d=JSON.parse(text); }catch(e){ console.log('parse err',text.slice(0,200)); return; }
     if(Array.isArray(d)){
-      d.forEach(row=>{ if(row[0]) OV[row[0]]=row[1]; });
-    } else if(typeof d==='object'){
-      Object.keys(d).forEach(k=>{ OV[k]=d[k]; });
+      d.forEach(row=>{ if(row[0]) OV[String(row[0])]=String(row[1]); });
+    } else if(typeof d==='object' && d!==null){
+      Object.keys(d).forEach(k=>{ OV[k]=String(d[k]); });
     }
+    console.log('loaded OV keys:', Object.keys(OV).length);
     GAS_READY=true;
   }catch(e){console.log('load err',e);}
 }
