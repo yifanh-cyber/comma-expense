@@ -371,9 +371,9 @@ function renderTable(){
     const amtInp=tr.querySelector('#amt_'+sid);
     amtInp.onblur=()=>{ const v=parseInt(amtInp.value.replace(/[^0-9]/g,''))||0; amtInp.value=v>0?v.toLocaleString():''; saveAmt(bName,mi,iName,amtInp.value); };
     const dueInp=tr.querySelector('#due_'+sid);
-    if(dueInp){ dueInp.value=getDue(bName,mi,iName); dueInp.onchange=()=>{ saveDue(bName,mi,iName,dueInp.value); const s=dueStatus(dueInp.value); dueInp.style.cssText=!dueInp.value?'':(s==='overdue'?'background:#FEE2E2;color:#991B1B':(s==='soon'?'background:#FEF3C7;color:#92400E':'background:#D1FAE5;color:#065F46')); }; }
+    if(dueInp){ dueInp.value=getDue(bName,mi,iName); dueInp.onchange=()=>{ saveDue(bName,mi,iName,dueInp.value); gasSet('du§'+sk(bName,mi,iName),dueInp.value); const s=dueStatus(dueInp.value); dueInp.style.cssText=!dueInp.value?'':(s==='overdue'?'background:#FEE2E2;color:#991B1B':(s==='soon'?'background:#FEF3C7;color:#92400E':'background:#D1FAE5;color:#065F46')); }; }
     const payInp=tr.querySelector('#pay_'+sid);
-    if(payInp){ payInp.value=getPayDate(bName,mi,iName); payInp.onchange=()=>{ savePayDate(bName,mi,iName,payInp.value); }; }
+    if(payInp){ payInp.value=getPayDate(bName,mi,iName); payInp.onchange=()=>{ savePayDate(bName,mi,iName,payInp.value); gasSet('pd§'+sk(bName,mi,iName),payInp.value); }; }
     const nd=tr.querySelector('#nd_'+sid), ni=tr.querySelector('#ni_'+sid);
     nd.onclick=()=>{ nd.style.display='none'; ni.style.display='block'; ni.focus(); };
     ni.onblur=()=>{ saveNote(bName,mi,iName,ni.value); nd.innerHTML=ni.value||'<span style="color:#2A4060">點擊新增…</span>'; ni.style.display='none'; nd.style.display=''; };
