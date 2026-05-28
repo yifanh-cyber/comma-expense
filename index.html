@@ -233,7 +233,11 @@ async function gasLoad(){
   try{
     const r=await fetch(GAS_URL);
     const d=await r.json();
-    if(Array.isArray(d)) d.forEach(row=>{ if(row[0]) OV[row[0]]=row[1]; });
+    if(Array.isArray(d)){
+      d.forEach(row=>{ if(row[0]) OV[row[0]]=row[1]; });
+    } else if(typeof d==='object'){
+      Object.keys(d).forEach(k=>{ OV[k]=d[k]; });
+    }
     GAS_READY=true;
   }catch(e){console.log('load err',e);}
 }
