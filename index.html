@@ -380,8 +380,8 @@ function renderTable(){
       '<td class="tl" style="padding-left:16px;color:#2A4060;font-size:12px"></td>'+
       '<td class="tl">'+it.n+'</td>'+
       '<td><span class="ck '+(paid?'paid':'unpaid')+'" id="ck_'+sid+'">'+(paid?'✓':'○')+'</span></td>'+
-      '<td id="due_td_'+sid+'">'+'<input type="date" class="due-inp" id="due_'+sid+'" value="">'+'</td>'+
-      '<td>'+'<input type="date" class="pay-inp" id="pay_'+sid+'" value="">'+'</td>'+
+      '<td style="white-space:nowrap">'+'<input type="date" class="due-inp" id="due_'+sid+'" value=""> <button onclick="saveDueBtn(\''+bName+'\','+mi+',\''+iName+'\')" style="font-size:10px;padding:2px 6px;border:1px solid #D1D5DB;border-radius:4px;background:#fff;cursor:pointer" title="儲存截止日">✓</button>'+'</td>'+
+      '<td style="white-space:nowrap">'+'<input type="date" class="pay-inp" id="pay_'+sid+'" value=""> <button onclick="savePayBtn(\''+bName+'\','+mi+',\''+iName+'\')" style="font-size:10px;padding:2px 6px;border:1px solid #D1D5DB;border-radius:4px;background:#fff;cursor:pointer" title="儲存繳費日期">✓</button>'+'</td>'+
       '<td><input class="amt-inp" type="text" value="'+fmtAmt(amt)+'" placeholder="輸入金額" id="amt_'+sid+'"></td>'+
       '<td><div class="note-wrap"><div class="note-disp" id="nd_'+sid+'">'+(note||'<span style="color:#2A4060">點擊新增…</span>')+'</div><input class="note-inp-field" id="ni_'+sid+'" value="'+note+'" placeholder="新增備註…"></div></td>';
 
@@ -445,6 +445,26 @@ function doExport(){
   a.download='逗點分校繳費控管_115年'+MO_TXT[mi]+'.txt'; a.click();
 }
 
+function saveDueBtn(b,mi,n){
+  const sid='s'+Array.from(BD[b].items).findIndex(x=>x.n===n)+'_'+mi;
+  const inp=document.getElementById('due_'+sid);
+  if(!inp||!inp.value) return;
+  saveDue(b,mi,n,inp.value);
+  gasSet('du§'+sk(b,mi,n),inp.value);
+  const btn=inp.nextElementSibling;
+  btn.textContent='✓'; btn.style.background='#D1FAE5'; btn.style.color='#065F46';
+  setTimeout(()=>{ btn.textContent='✓'; btn.style.background=''; btn.style.color=''; },2000);
+}
+function savePayBtn(b,mi,n){
+  const sid='s'+Array.from(BD[b].items).findIndex(x=>x.n===n)+'_'+mi;
+  const inp=document.getElementById('pay_'+sid);
+  if(!inp||!inp.value) return;
+  savePayDate(b,mi,n,inp.value);
+  gasSet('pd§'+sk(b,mi,n),inp.value);
+  const btn=inp.nextElementSibling;
+  btn.textContent='✓'; btn.style.background='#D1FAE5'; btn.style.color='#065F46';
+  setTimeout(()=>{ btn.textContent='✓'; btn.style.background=''; btn.style.color=''; },2000);
+}
 function saveAll(){
   const btn=document.getElementById('saveBtn');
   btn.textContent='儲存中…'; btn.className='save-btn saving'; btn.disabled=true;
