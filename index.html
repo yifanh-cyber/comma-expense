@@ -409,7 +409,7 @@ function renderTable(){
       saveDue(bName,mi,iName,dueInp.value);
       gasSet('du§'+sk(bName,mi,iName),dueInp.value);
       const s=dueStatus(dueInp.value);
-      dueInp.style.cssText=s==='overdue'?'background:#FEE2E2;color:#991B1B':(s==='soon'?'background:#FEF3C7;color:#92400E':'background:#D1FAE5;color:#065F46');
+      dueInp.setAttribute('data-status',s);
     })); }
     const payInp=tr.querySelector('#pay_'+sid);
     if(payInp){
