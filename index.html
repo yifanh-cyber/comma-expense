@@ -376,7 +376,7 @@ function renderTable(){
   bd.items.forEach((it,idx)=>{
     if(it.c!==lastC){
       const r=document.createElement('tr'); r.className='cat-row';
-      r.innerHTML='<td colspan="5">'+it.c+'</td>';
+      r.innerHTML='<td colspan="7">'+it.c+'</td>';
       tb.appendChild(r); lastC=it.c;
     }
     const paid=isPaid(curB,mi,it.n);
