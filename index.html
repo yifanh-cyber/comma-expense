@@ -403,17 +403,7 @@ function renderTable(){
     const dueInp=tr.querySelector('#due_'+sid);
     if(dueInp){
       // 加確認鈕
-      const dueBtn=document.createElement('button');
-      dueBtn.textContent='✓'; dueBtn.title='儲存截止日';
-      dueBtn.style.cssText='font-size:10px;padding:2px 5px;margin-left:3px;border:1px solid #D1D5DB;border-radius:4px;background:#fff;cursor:pointer;vertical-align:middle';
-      dueBtn.onclick=()=>{
-        if(!dueInp.value) return;
-        saveDue(bName,mi,iName,dueInp.value);
-        gasSet('du§'+sk(bName,mi,iName),dueInp.value);
-        dueBtn.style.background='#D1FAE5'; dueBtn.style.color='#065F46';
-        setTimeout(()=>{ dueBtn.style.background=''; dueBtn.style.color=''; },2000);
-      };
-      dueInp.parentNode.appendChild(dueBtn);
+
       dueInp.value=getDue(bName,mi,iName); ['change','input','blur'].forEach(ev=>dueInp.addEventListener(ev,()=>{
       if(!dueInp.value) return;
       saveDue(bName,mi,iName,dueInp.value);
@@ -423,17 +413,7 @@ function renderTable(){
     })); }
     const payInp=tr.querySelector('#pay_'+sid);
     if(payInp){
-      const payBtn=document.createElement('button');
-      payBtn.textContent='✓'; payBtn.title='儲存繳費日期';
-      payBtn.style.cssText='font-size:10px;padding:2px 5px;margin-left:3px;border:1px solid #D1D5DB;border-radius:4px;background:#fff;cursor:pointer;vertical-align:middle';
-      payBtn.onclick=()=>{
-        if(!payInp.value) return;
-        savePayDate(bName,mi,iName,payInp.value);
-        gasSet('pd§'+sk(bName,mi,iName),payInp.value);
-        payBtn.style.background='#D1FAE5'; payBtn.style.color='#065F46';
-        setTimeout(()=>{ payBtn.style.background=''; payBtn.style.color=''; },2000);
-      };
-      payInp.parentNode.appendChild(payBtn);
+
       payInp.value=getPayDate(bName,mi,iName); ['change','input','blur'].forEach(ev=>payInp.addEventListener(ev,()=>{
       if(!payInp.value) return;
       savePayDate(bName,mi,iName,payInp.value);
