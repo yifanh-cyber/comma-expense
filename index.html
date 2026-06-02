@@ -399,7 +399,7 @@ function renderTable(){
     const bName=curB, iName=it.n;
     tr.querySelector('#ck_'+sid).onclick=()=>{ toggle(bName,mi,iName); };
     const amtInp=tr.querySelector('#amt_'+sid);
-    amtInp.onblur=()=>{ const raw=amtInp.value.replace(/[^0-9]/g,''); const v=raw===''?null:parseInt(raw); amtInp.value=v===null?'':(v===0?'0':v.toLocaleString()); saveAmt(bName,mi,iName,amtInp.value); if(v===0&&!isPaid(bName,mi,iName)){ toggle(bName,mi,iName); } };
+    amtInp.onblur=()=>{ const raw=amtInp.value.replace(/[^0-9]/g,''); const v=raw===''?null:parseInt(raw); amtInp.value=v===null?'':(v===0?'0':v.toLocaleString()); saveAmt(bName,mi,iName,v===null?'':String(v)); if(v===0&&!isPaid(bName,mi,iName)){ toggle(bName,mi,iName); } };
     const dueInp=tr.querySelector('#due_'+sid);
     if(dueInp){
       // 加確認鈕
