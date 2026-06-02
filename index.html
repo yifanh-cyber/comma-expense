@@ -296,7 +296,7 @@ function getNote(b,mi,n){
   return it ? it.note : '';
 }
 function toggle(b,mi,n){ const k=sk(b,mi,n); OV[k]=!isPaid(b,mi,n); gasSet(k,OV[k]?'1':'0'); render(); }
-function saveAmt(b,mi,n,v){ const k='a§'+sk(b,mi,n); const val=v===''?null:(parseInt(v.replace(/[^0-9]/g,''))||null); OV[k]=val; gasSet(k,val===null?'':String(val)); renderSm(); }
+function saveAmt(b,mi,n,v){ const k='a§'+sk(b,mi,n); const parsed=parseInt(String(v).replace(/[^0-9]/g,'')); const val=(v===''||v===null||isNaN(parsed))?null:parsed; OV[k]=val; gasSet(k,val===null?'':String(val)); renderSm(); }
 function saveNote(b,mi,n,v){ const k='nt§'+sk(b,mi,n); OV[k]=v; gasSet(k,v); }
 
 function getDue(b,mi,n){ return OV['du§'+sk(b,mi,n)]||''; }
@@ -311,7 +311,7 @@ function dueStatus(v){
   if(diff<=3) return 'soon';
   return 'ok';
 }
-function fmtAmt(v){ return v==null?'':Number(v).toLocaleString(); }
+function fmtAmt(v){ return (v==null||v==='')?'':Number(v).toLocaleString(); }
 function stats(b,mi){
   const its=BD[b].items; let p=0,t=its.length,s=0;
   its.forEach(it=>{ if(isPaid(b,mi,it.n)){p++; const a=getAmt(b,mi,it.n); if(a) s+=a; } });
