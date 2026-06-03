@@ -250,9 +250,10 @@ async function gasLoad(){
     let d;
     try{ d=JSON.parse(text); }catch(e){ console.log('parse err',text.slice(0,200)); return; }
     function cleanVal(v){
-      if(!v && v!==0) return '';
+      if(v===''||v===null||v===undefined) return '';
       const s=String(v);
-      // 日期格式 2026-05-26T16:00:00.000Z -> 2026-05-26
+      if(s==='false'||s==='0') return 0;
+      if(s==='true'||s==='1') return 1;
       if(/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.slice(0,10);
       return s;
     }
@@ -295,7 +296,7 @@ function getNote(b,mi,n){
   const it=BD[b].items.find(x=>x.n===n);
   return it ? it.note : '';
 }
-function toggle(b,mi,n){ const k=sk(b,mi,n); OV[k]=!isPaid(b,mi,n); gasSet(k,OV[k]?'1':'0'); render(); }
+function toggle(b,mi,n){ const k=sk(b,mi,n); const newVal=isPaid(b,mi,n)?0:1; OV[k]=newVal; gasSet(k,String(newVal)); render(); }
 function saveAmt(b,mi,n,v){ const k='a§'+sk(b,mi,n); const parsed=parseInt(String(v).replace(/[^0-9]/g,'')); const val=(v===''||v===null||isNaN(parsed))?null:parsed; OV[k]=val; gasSet(k,val===null?'':String(val)); renderSm(); }
 function saveNote(b,mi,n,v){ const k='nt§'+sk(b,mi,n); OV[k]=v; gasSet(k,v); }
 
